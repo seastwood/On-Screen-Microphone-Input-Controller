@@ -1,5 +1,5 @@
 # On-Screen-Microphone-Input-Controller
-This is a microphone controller overlay button for windows 11. When clicked it sets the volume to 0 or to the user's set "On Volume".
+This is an on-screen microphone controller overlay button for windows 11. When clicked it sets the volume to 0 or to the user's set "On Volume".
 
 ![icon](https://github.com/user-attachments/assets/1cf71ce7-0ea4-4aaf-a393-2a4c47d5f9df)
 
