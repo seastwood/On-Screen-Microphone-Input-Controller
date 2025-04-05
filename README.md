@@ -1,6 +1,8 @@
 # On-Screen-Microphone-Input-Controller
 This is a microphone controller overlay button for windows 11. When clicked it sets the volume to 0 or to the user's set "On Volume".
 
+![icon](https://github.com/user-attachments/assets/1cf71ce7-0ea4-4aaf-a393-2a4c47d5f9df)
+
 My use case:
 I wanted a simple on screen microphone controller when streaming games to my phone through moonlight. This simply allows me to tap the circle with my finger and turn the mic on or off and providing visible feedback of the volume state of my input microphone. 
 
