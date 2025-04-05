@@ -9,6 +9,7 @@ I wanted a simple on screen microphone controller when streaming games to my pho
 - Download the repo and run the exe file in the /dist folder if you wish to use this program.
 - The button can be dragged and placed anywhere on the screen.
 - Right click the button to open the settings menu to change max volume and set the button size. This is also the only way to close the program.
+
 ![image](https://github.com/user-attachments/assets/b7b81d3b-8c06-4b95-86ec-22ca8fa03ffc)
 
 - Games must be played in Borderless/Windowed mode in order for the microphone overlay to be visible.
