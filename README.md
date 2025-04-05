@@ -6,6 +6,7 @@ This is a microphone controller overlay button for windows 11. When clicked it s
 My use case:
 I wanted a simple on screen microphone controller when streaming games to my phone through moonlight. This simply allows me to tap the circle with my finger and turn the mic on or off and providing visible feedback of the volume state of my input microphone. 
 
+- Download the repo and run the exe file in the /dist folder if you wish to use this program.
 - The button can be dragged an placed anywhere on the screen.
 - Right click the button to open the settings menu to change max volume and set the button size. This is also the only way to close the program.
 ![image](https://github.com/user-attachments/assets/b7b81d3b-8c06-4b95-86ec-22ca8fa03ffc)
