@@ -13,6 +13,7 @@ I wanted a simple on screen microphone controller when streaming games to my pho
 ![image](https://github.com/user-attachments/assets/b7b81d3b-8c06-4b95-86ec-22ca8fa03ffc)
 
 - Games must be played in Borderless/Windowed mode in order for the microphone overlay to be visible.
+- If using discord, leave open mic on, or leave open mic on in your game, and control it with this button.
 
 Example of useage on an iphone with gamepad running moonlight:
 ![IMG_20250405_122320](https://github.com/user-attachments/assets/ea938592-1cf2-47a9-bfbe-6b524a50c914)
