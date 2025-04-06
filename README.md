@@ -29,4 +29,4 @@ Future potential improvements:
 - visual feedback on the circle of mic input activity
 - Add multiple on screen buttons that can be modified to hotkeys.
 - Hotkey mode
-- Edit coloring/opacity of buttons when multiple buttons are implemented.
+- Ability to edit coloring/opacity of buttons when multiple buttons are implemented.
