@@ -23,3 +23,6 @@ Example of useage on an iphone with gamepad running moonlight:
 I use VBAN-Talkie on my iPhone to transmit my microphone to my pc. VBAN-Receptor is on my windows 11 PC to receive the sound, and VBAN-Cable is also on my PC to allow the microphone to be used as input. Note: In order for this to work, you must go to the VB Cable Control Panel > Options > and turn on Enable Windows Volume Control.
 
 ![image](https://github.com/user-attachments/assets/67aa5c68-4b3a-46bb-bb22-1831efcbfc32)
+
+Future potential improvements:
+- visual feedback on the circle of mic input activity
