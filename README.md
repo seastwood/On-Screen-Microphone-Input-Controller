@@ -14,6 +14,7 @@ I wanted a simple on screen microphone controller when streaming games to my pho
 
 - Games must be played in Borderless/Windowed mode in order for the microphone overlay to be visible.
 - If using discord, leave open mic on, or leave open mic on in your game, and control it with this button.
+- If you want a button on each side of the screen so either thumb can activate it, just run the exe twice and move the button over.
 
 Example of useage on an iphone with gamepad running moonlight:
 ![IMG_20250405_122320](https://github.com/user-attachments/assets/ea938592-1cf2-47a9-bfbe-6b524a50c914)
@@ -26,3 +27,5 @@ I use VBAN-Talkie on my iPhone to transmit my microphone to my pc. VBAN-Receptor
 
 Future potential improvements:
 - visual feedback on the circle of mic input activity
+- Add multiple on screen buttons that can be modified to hotkeys.
+- Hotkey mode
