@@ -21,7 +21,9 @@ Example of useage on an iphone with gamepad running moonlight:
 ![IMG_20250405_122339](https://github.com/user-attachments/assets/d22c902f-a762-41ae-bafb-9e3797310fe2)
 
 
-I use VBAN-Talkie on my iPhone to transmit my microphone to my pc. VBAN-Receptor is on my windows 11 PC to receive the sound, and VBAN-Cable is also on my PC to allow the microphone to be used as input. Note: In order for this to work, you must go to the VB Cable Control Panel > Options > and turn on Enable Windows Volume Control.
+I use VBAN-Talkie on my iPhone to transmit my microphone to my pc. VBAN-Receptor is on my windows 11 PC to receive the sound, and VBAN-Cable is also on my PC to allow the microphone to be used as input. 
+- Note: In order for this to work, you must go to the VB Cable Control Panel > Options > and turn on Enable Windows Volume Control.
+- 2nd note: I also couldn't get the x64 setup exe for VBAN Cable to function with the control panel. The non-x64 exe worked for me with the control panel but it only installs the drivers and  doesn't appear as an installed application... It was a finnicky uninstall/reinstall until it magically worked on Windows 11.
 
 ![image](https://github.com/user-attachments/assets/67aa5c68-4b3a-46bb-bb22-1831efcbfc32)
 
