@@ -5,6 +5,8 @@ from pycaw.pycaw import AudioUtilities, IAudioEndpointVolume
 from comtypes import CLSCTX_ALL
 import sys
 import os
+import sounddevice as sd
+import numpy as np
 
 # Define the base config directory in the user's local AppData
 CONFIG_DIR = os.path.join(os.getenv("LOCALAPPDATA"), "MuteOverlay")
@@ -55,7 +57,7 @@ class SettingsDialog(QDialog):
         self.layout.addWidget(QLabel("On Volume"))
         self.volume_slider = QSlider(Qt.Horizontal)
         self.volume_slider.setRange(0, 100)
-        self.volume_slider.setValue(parent.load_volume())
+        self.volume_slider.setValue(parent.load_volume() if parent else 50)  # Default to 50 if parent is None
         self.volume_slider.setStyleSheet("""
                     QSlider::groove:horizontal {
                         background: #444444;
@@ -75,7 +77,7 @@ class SettingsDialog(QDialog):
         self.layout.addWidget(QLabel("Size"))
         self.size_slider = QSlider(Qt.Horizontal)
         self.size_slider.setRange(50, 400)
-        self.size_slider.setValue(parent.load_size())
+        self.size_slider.setValue(parent.load_size() if parent else 150)  # Default to 150 if parent is None
         self.size_slider.setStyleSheet("""
                     QSlider::groove:horizontal {
                         background: #444444;
@@ -133,17 +135,15 @@ class SettingsDialog(QDialog):
         # Close the dialog and end the program
         QApplication.quit()
 
-import sounddevice as sd
-import numpy as np
-import threading
 
 class MuteOverlay(QWidget):
     def __init__(self):
         super().__init__()
-
         self.live_amplitude = 0  # Store current audio amplitude
-        self._audio_stream_thread = threading.Thread(target=self.start_audio_stream, daemon=True)
-        self._audio_stream_thread.start()
+        self.stream = None  # Audio stream reference
+
+        # Start the audio stream
+        self.start_audio_stream()
 
         # Load the saved size and set the overlay geometry accordingly
         overlay_size = self.load_size()
@@ -159,10 +159,12 @@ class MuteOverlay(QWidget):
 
         self.label = QLabel("", self)
 
+        # Set up the timer to periodically check mute status
         self.timer = QTimer()
         self.timer.timeout.connect(self.check_mute)
         self.timer.start(500)  # Check the mute status every 500ms
 
+        # Initialize volume and mute state
         self.volume_percentage = self.load_volume()  # Initialize volume from file or default to 0
         self.muted = False
         self.is_dragging = False  # Flag for dragging
@@ -171,16 +173,18 @@ class MuteOverlay(QWidget):
 
     def start_audio_stream(self):
         def callback(indata, frames, time, status):
-            volume_norm = np.linalg.norm(indata)  # Euclidean norm = amplitude
-            self.live_amplitude = min(volume_norm * 10, 1.0)  # Scale to [0.0 - 1.0]
-            self.update()  # Trigger paint
+            # Calculate the amplitude (volume) of the audio stream
+            if hasattr(self, 'live_amplitude'):  # Check if attribute exists
+                volume_norm = np.linalg.norm(indata)  # Euclidean norm = amplitude
+                self.live_amplitude = min(volume_norm * 10, 1.0)  # Scale to [0.0 - 1.0]
+                self.update()  # Trigger a repaint to update the visual effect
 
         try:
-            # Use default input device, 16KHz, mono
-            sd.InputStream(callback=callback, channels=1, samplerate=1000).start()
+            # Start the audio stream with a callback to update amplitude
+            self.stream = sd.InputStream(callback=callback, channels=1, samplerate=1000)
+            self.stream.start()
         except Exception as e:
             print(f"Error starting audio stream: {e}")
-
 
     def check_mute(self):
         # Get the default audio device (microphone)
@@ -206,7 +210,6 @@ class MuteOverlay(QWidget):
             print(f"Mute status changed: {'Muted' if self.muted else 'Unmuted'}")
             self.update()
 
-
     def paintEvent(self, event):
         # Draw the main circle indicating mic volume
         painter = QPainter(self)
@@ -221,14 +224,16 @@ class MuteOverlay(QWidget):
             color = QColor(255, 0, 0)  # Red when muted
         else:
             color = QColor(0, 255, 0, 128)  # Semi-transparent green when unmuted
-            # Dynamic green circle based on actual mic input
-            max_pulse_radius = radius // 4 # smaller than before
+
+            # Use live_amplitude for the visual effect
+            max_pulse_radius = radius // 4  # Adjust this to control the pulse size
             pulse_radius = int(self.live_amplitude * max_pulse_radius)
 
-            green = QColor(0, 255, 0, 60)  # lower alpha = more transparent
+            green = QColor(0, 255, 0, 60)  # Semi-transparent green for pulse
             painter.setBrush(green)
             painter.setPen(Qt.NoPen)
             painter.drawEllipse(center, pulse_radius, pulse_radius)
+
 
         # Draw the circle background
         painter.setBrush(QColor(0, 0, 0, 100))  # Semi-transparent black
@@ -288,8 +293,19 @@ class MuteOverlay(QWidget):
 
         elif event.button() == Qt.RightButton:
             # Open the settings dialog
-            dialog = SettingsDialog(self)
-            dialog.exec_()
+            self.open_settings_dialog()
+
+    def open_settings_dialog(self):
+        # Stop the audio stream when opening settings
+        if self.stream:
+            self.stream.stop()
+            self.stream.close()
+
+        dialog = SettingsDialog(self)
+        dialog.exec_()
+
+        # Restart the audio stream after settings are closed
+        self.start_audio_stream()
 
     def mouseMoveEvent(self, event):
         if self.is_dragging:
@@ -364,6 +380,7 @@ class MuteOverlay(QWidget):
     def load_position(self):
         # Load the position from a file
         if os.path.exists(POSITION_FILE):
+
             with open(POSITION_FILE, "r") as f:
                 position_data = f.read().split(",")
                 x, y = int(position_data[0]), int(position_data[1])
