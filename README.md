@@ -32,4 +32,4 @@ Future potential improvements:
 - Add option for multiple on screen buttons that can be modified to hotkeys.
 - Hotkey mode
 - Ability to edit coloring/opacity of buttons when multiple buttons are implemented.
-- Will most likeley fork this project to achieve the above goals and leave this one as is to keep ot simple and lightweight..
+- Will most likely fork this project later on to achieve the above goals and leave this one as is to keep it simple and lightweight.
