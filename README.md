@@ -28,7 +28,7 @@ I use VBAN-Talkie on my iPhone to transmit my microphone to my pc. VBAN-Receptor
 ![image](https://github.com/user-attachments/assets/67aa5c68-4b3a-46bb-bb22-1831efcbfc32)
 
 Future potential improvements:
-- visual feedback on the circle of mic input activity
+- visual feedback on the circle of mic input activity (done)
 - Add option for multiple on screen buttons that can be modified to hotkeys.
 - Hotkey mode
 - Ability to edit coloring/opacity of buttons when multiple buttons are implemented.
