@@ -133,10 +133,17 @@ class SettingsDialog(QDialog):
         # Close the dialog and end the program
         QApplication.quit()
 
+import sounddevice as sd
+import numpy as np
+import threading
 
 class MuteOverlay(QWidget):
     def __init__(self):
         super().__init__()
+
+        self.live_amplitude = 0  # Store current audio amplitude
+        self._audio_stream_thread = threading.Thread(target=self.start_audio_stream, daemon=True)
+        self._audio_stream_thread.start()
 
         # Load the saved size and set the overlay geometry accordingly
         overlay_size = self.load_size()
@@ -161,6 +168,19 @@ class MuteOverlay(QWidget):
         self.is_dragging = False  # Flag for dragging
         self.drag_position = QPoint(0, 0)  # Starting position of drag
         self.show()
+
+    def start_audio_stream(self):
+        def callback(indata, frames, time, status):
+            volume_norm = np.linalg.norm(indata)  # Euclidean norm = amplitude
+            self.live_amplitude = min(volume_norm * 10, 1.0)  # Scale to [0.0 - 1.0]
+            self.update()  # Trigger paint
+
+        try:
+            # Use default input device, 16KHz, mono
+            sd.InputStream(callback=callback, channels=1, samplerate=1000).start()
+        except Exception as e:
+            print(f"Error starting audio stream: {e}")
+
 
     def check_mute(self):
         # Get the default audio device (microphone)
@@ -201,6 +221,14 @@ class MuteOverlay(QWidget):
             color = QColor(255, 0, 0)  # Red when muted
         else:
             color = QColor(0, 255, 0, 128)  # Semi-transparent green when unmuted
+            # Dynamic green circle based on actual mic input
+            max_pulse_radius = radius // 4 # smaller than before
+            pulse_radius = int(self.live_amplitude * max_pulse_radius)
+
+            green = QColor(0, 255, 0, 60)  # lower alpha = more transparent
+            painter.setBrush(green)
+            painter.setPen(Qt.NoPen)
+            painter.drawEllipse(center, pulse_radius, pulse_radius)
 
         # Draw the circle background
         painter.setBrush(QColor(0, 0, 0, 100))  # Semi-transparent black
