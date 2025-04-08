@@ -1,0 +1,40 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdk/
+venv/
+ENV/
+env/
+.venv/
+.venv
+venv/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# PyCharm
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Backups
+Backups/
+
+# Build files
+*.spec
+
+# System files
+.DS_Store
+Thumbs.db

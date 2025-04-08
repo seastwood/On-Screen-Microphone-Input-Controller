@@ -166,11 +166,9 @@ class MuteOverlay(QWidget):
         self.setAttribute(Qt.WA_TranslucentBackground)
         self.setAttribute(Qt.WA_ShowWithoutActivating)
 
-        # Proper window focus tracking
+        # Focus tracking setup
         self.last_focus_window = None
-        self.focus_check_timer = QTimer()
-        self.focus_check_timer.timeout.connect(self.update_focused_window)
-        self.focus_check_timer.start(100)  # Check every 100ms
+        self.setup_focus_tracking()
 
         self.label = QLabel("", self)
 
@@ -186,15 +184,61 @@ class MuteOverlay(QWidget):
         self.drag_position = QPoint(0, 0)  # Starting position of drag
         self.show()
 
-    def update_focused_window(self):
-        """Continuously track the currently focused window"""
-        current_window = GetForegroundWindow()
-        if current_window and current_window != self.winId():
-            self.last_focus_window = current_window
+    def win_event_callback(self, hWinEventHook, event, hwnd, idObject, idChild, dwEventThread, dwmsEventTime):
+        """Handle focus change events"""
+        if hwnd and hwnd != self.winId():
+            self.last_focus_window = hwnd
             # Debug print
             buffer = ctypes.create_unicode_buffer(255)
-            windll.user32.GetWindowTextW(current_window, buffer, 255)
-            # print(f"Tracking window: {current_window} - '{buffer.value}'")
+            self.user32.GetWindowTextW(hwnd, buffer, 255)
+            print(f"Focus changed to: {hwnd} - '{buffer.value}'")
+
+    def setup_focus_tracking(self):
+        """Initialize Windows event hook for focus tracking"""
+        self.user32 = windll.user32
+        self.ole32 = windll.ole32
+
+        # Initialize COM
+        self.ole32.CoInitialize(0)
+
+        # Define callback function type
+        WinEventProc = ctypes.WINFUNCTYPE(
+            None,
+            ctypes.wintypes.HANDLE,
+            ctypes.wintypes.DWORD,
+            ctypes.wintypes.HWND,
+            ctypes.wintypes.LONG,
+            ctypes.wintypes.LONG,
+            ctypes.wintypes.DWORD,
+            ctypes.wintypes.DWORD
+        )
+
+        # Store callback reference
+        self.win_event_proc = WinEventProc(self.win_event_callback)
+
+        # Set up the hook
+        self.hook = self.user32.SetWinEventHook(
+            0x8005,  # EVENT_OBJECT_FOCUS
+            0x8005,  # EVENT_OBJECT_FOCUS
+            0,
+            self.win_event_proc,
+            0,
+            0,
+            0x0000 | 0x0002  # WINEVENT_OUTOFCONTEXT | WINEVENT_SKIPOWNPROCESS
+        )
+
+        if not self.hook:
+            print("Failed to set event hook!")
+
+    # def update_focused_window(self):
+    #     """Continuously track the currently focused window"""
+    #     current_window = GetForegroundWindow()
+    #     if current_window and current_window != self.winId():
+    #         self.last_focus_window = current_window
+    #         # Debug print
+    #         buffer = ctypes.create_unicode_buffer(255)
+    #         windll.user32.GetWindowTextW(current_window, buffer, 255)
+    #         print(f"Tracking window: {current_window} - '{buffer.value}'")
 
     def start_audio_stream(self):
         def callback(indata, frames, time, status):
@@ -232,7 +276,7 @@ class MuteOverlay(QWidget):
 
         if is_muted != self.muted:
             self.muted = is_muted
-            # print(f"Mute status changed: {'Muted' if self.muted else 'Unmuted'}")
+            print(f"Mute status changed: {'Muted' if self.muted else 'Unmuted'}")
             self.update()
 
     def paintEvent(self, event):
@@ -288,39 +332,38 @@ class MuteOverlay(QWidget):
 
     def mousePressEvent(self, event):
         if event.button() == Qt.LeftButton:
-            # print("\n=== Mouse Press Event ===")
-
-            # Debug current focus state
-            current_focus = GetForegroundWindow()
-            buffer = ctypes.create_unicode_buffer(255)
-            windll.user32.GetWindowTextW(current_focus, buffer, 255)
-            # print(f"Current focus before click: {current_focus} - '{buffer.value}'")
+            print("\n=== Mouse Press Event ===")
 
             # Process the click
             self.is_dragging = True
             self.drag_position = event.globalPos() - self.pos()
             self.toggle_mute()
 
-            # Restore focus using our tracked window
+            # Restore focus if we have a tracked window
             if self.last_focus_window:
-                # print(f"Restoring focus to: {self.last_focus_window}")
-                for _ in range(3):  # Try 3 times
-                    SetForegroundWindow(self.last_focus_window)
-                    windll.user32.BlockInput(True)
-                    windll.user32.BlockInput(False)
-                    windll.kernel32.Sleep(10)
+                print(f"Restoring focus to: {self.last_focus_window}")
+                self.user32.SetForegroundWindow(self.last_focus_window)
+                # Flash the window to ensure focus
+                self.user32.FlashWindow(self.last_focus_window, True)
 
             event.accept()
+
         elif event.button() == Qt.RightButton:
-            # print("\n=== Right Click ===")
-            self.last_focus_window = GetForegroundWindow()
-            # print(f"Saved focus window: {self.last_focus_window}")
+            current_window = GetForegroundWindow()
             self.open_settings_dialog()
+            if current_window:
+                self.user32.SetForegroundWindow(current_window)
             event.accept()
+
+    def __del__(self):
+        """Clean up when closing"""
+        if hasattr(self, 'hook'):
+            self.user32.UnhookWinEvent(self.hook)
+            self.ole32.CoUninitialize()
 
     def force_restore_focus(self):
         """More aggressive focus restoration with debug prints"""
-        # print("\n=== Attempting Focus Restoration ===")
+        print("\n=== Attempting Focus Restoration ===")
         if self.last_focus_window:
             print(f"1. Trying to restore to window: {self.last_focus_window}")
 
@@ -329,7 +372,7 @@ class MuteOverlay(QWidget):
             print(f"2. Current focused window before restore: {current_focus}")
 
             # Try multiple restoration methods
-            for attempt in range(1, 25):
+            for attempt in range(1, 4):
                 print(f"\nAttempt {attempt}:")
 
                 # Method 1: Simple SetForegroundWindow
@@ -355,7 +398,7 @@ class MuteOverlay(QWidget):
                     break
 
                 # Small delay between attempts
-                windll.kernel32.Sleep(2)
+                # windll.kernel32.Sleep(10)
         else:
             print("No saved window to restore focus to!")
 
@@ -476,3 +519,4 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
     overlay = MuteOverlay()
     sys.exit(app.exec_())
+
